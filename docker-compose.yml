@@ -1,0 +1,66 @@
+version: '3.7'
+
+services:
+
+  postgres:
+    container_name: postgres
+    hostname: postgres
+    image: postgres:14.7-alpine3.17
+    ports:
+      - 5432:5432
+    volumes:
+      - ./database:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+
+  pgadmin:
+    container_name: pgadmin
+    hostname: pgadmin
+    image: dpage/pgadmin4
+    ports:
+      - 5433:80
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+      - PGADMIN_CONFIG_CONSOLE_LOG_LEVEL=10
+
+  eureka:
+    container_name: eureka
+    image: springcloud/eureka:latest
+    ports:
+      - 8761:8761
+  doc:
+    image: swaggerapi/swagger-ui
+    container_name: book-api-doc
+    ports:
+      - "8082:8080"
+    volumes:
+      - ./docs/api.yaml:/app/docs/api.yaml
+    environment:
+      SWAGGER_JSON: /app/docs/api.yaml
+
+  book:
+    container_name: book-service
+    image: book-service
+    build: ./book-service
+    ports:
+      - 8080:8080
+    volumes:
+      - ./logs/book:/app/log
+
+  caller:
+    container_name: caller-service
+    image: caller-service
+    build: ./caller-service
+    ports:
+      - 8081:8081
+    volumes:
+      - ./logs/caller:/app/log
+
+volumes:
+  pgadmin-data:
+  api-log:

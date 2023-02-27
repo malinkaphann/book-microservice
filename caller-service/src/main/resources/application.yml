@@ -1,0 +1,20 @@
+server:
+  port: ${server_port:8081}
+
+spring:
+  application:
+    name: caller-service
+
+security:
+  API_TOKEN: eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhcGkiLCJleHAiOjE2Nzc0OTczMjksImlhdCI6MTY3NzQ3OTMyOX0.P33pF6hyXJGdadofGcCdwfoD0O8AWqoJ14bIxH-Qa06RTsHZPE-Uh9TY9cAYW-mExMVKU0oL-REx_Cdx5mDqDQ
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:1111/eureka/

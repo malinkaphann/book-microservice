@@ -1,0 +1,362 @@
+openapi: 3.0.3
+info:
+  title: Library - OpenAPI 3.0
+  description: |-
+    This is the library api specification. There are two main modules.
+      - User Management Module
+      - Book Management Module
+  contact:
+    email: malinkaphann@gmail.com
+  version: 0.0.1
+servers:
+  - url: https://library.malinka.dev/api/v1
+tags:
+  - name: user
+    description: |-
+      This is the user management module.
+      Here are the roles.
+        - ADMIN
+          - can do anything
+        - LIBRARIAN 
+          - search for books
+          - fetch a book's detail
+          - add new book
+          - update book's detail
+          - hold/unhold any book for any user
+        - PROFESSOR
+          - search for books
+          - fetch a book's detail
+        - STUDENT
+          - search for books
+          - fetch a book's detail
+        - API_CLIENT
+          - search for books
+          - fetch a book's detail
+
+  - name: book
+    description: |-
+      This is the book management module.
+paths:
+  /auth/signup:
+    post:
+      tags:
+        - user
+      summary: Signup User
+      description: |- 
+        This is to sign up a user. If the requests are sent on behalf of a student, the studentId must be specified.
+      operationId: signupUser
+      requestBody:
+        description: Created user object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequestDto'
+      responses:
+        201:
+          description: Sign up successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseDto'
+        400:
+          description: |-
+            Something goes wrong in the request such as:
+              - name length is too long
+              - email is wront format
+              - role STUDENT does not exist
+              - username was already taken
+              - student already registered before
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseDto'
+        500:
+          description: |-
+            Something goes wrong at the server such as:
+              - error from running a database query
+              - any unexpected error from the server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseDto'
+  /auth/login:
+    post:
+      tags:
+        - user
+      summary: Login User
+      description: This is to login a user.
+      operationId: loginUser
+      requestBody:
+        description: Login user object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequestDto'
+      responses:
+        200:
+          description: Login successfully
+          content:
+            applicatioin/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponseDto'
+        400:
+          description: Login fails
+          content:
+            applicatioin/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseDto'
+    
+        500:
+          description: Something goes wrong at the server
+          content:
+            applicatioin/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseDto'
+  /book:
+    get:
+      tags:
+        - book
+      summary: Search for books
+      description: This is to search for books
+      operationId: searchBooks
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+          required: false
+          description: search keyword
+        - in: query
+          name: page
+          schema:
+            type: integer
+          required: false
+          description: page number
+        - in: query
+          name: size
+          schema:
+            type: integer
+          required: false
+          description: size per page
+        - in: query
+          name: sort
+          schema:
+            type: string
+          required: false
+          description: sort by field
+        - in: query
+          name: order
+          schema:
+            type: string
+          required: false
+          description: ordering
+      responses:
+        200:
+          description: Books are searched successfully
+          content:
+            applicatioin/json:
+              schema:
+                $ref: '#/components/schemas/SearchBooksResponseDto'
+        400:
+          description: Login fails
+          content:
+            applicatioin/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseDto'
+    
+        500:
+          description: Something goes wrong at the server
+          content:
+            applicatioin/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseDto'
+  /book/{id}:
+    get:
+      tags:
+        - book
+      summary: Fetch a book detail
+      description: This is to fetch a book detail.
+      operationId: fetchBooks
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          description: book id to fetch
+      responses:
+        200:
+          description: Book is fetched successfully
+          content:
+            applicatioin/json:
+              schema:
+                $ref: '#/components/schemas/DetailBookResponseDto'
+        400:
+          description: Something goes wrong in the request
+          content:
+            applicatioin/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseDto'
+        403:
+          description: Access is forbidden
+          content:
+            applicatioin/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseDto'
+        404:
+          description: Book is not found
+          content:
+            applicatioin/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseDto'
+        500:
+          description: Something goes wrong at the server
+          content:
+            applicatioin/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponseDto'
+
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Book:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Pka Sropon
+        author:
+          type: string
+          example: Nou Hach
+        category:
+          type: string
+          example: Novel
+        description:
+          type: string
+          example: This is a very touching novel.
+    BookPaginationDto:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        size:
+          type: integer
+          example: 10
+        totalPage:
+          type: integer
+          example: 3
+        totalSize:
+          type: integer
+          example: 123
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/Book'
+    UserProfile:
+      type: object
+      required:
+        - name
+        - email
+        - phone
+        - studentId
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        studentId: 
+          type: string
+    ApiResponseDto:
+      type: object
+      required:
+        - status
+        - message
+        - requestId
+      properties:
+        status:
+          type: integer
+        message:
+          type: string
+        requestId:
+          type: string
+    SignupRequestDto:
+      type: object
+      required:  
+        - username
+        - password
+        - name
+        - email
+        - phone
+      properties:
+        username:
+          type: string
+          example: 'malinka'
+        password:
+          type: string
+          example: 'p@ssw0rd'
+        name: 
+          type: string
+          example: 'Phann Malinka'
+        email: 
+          type: string
+          example: 'student1@gmail.com'
+        phone:
+          type: string
+          example: '012123456'
+        studentId:
+          type: string
+          example: 'A12345'
+        roles:
+          type: string
+          example: 'LIBRARIAN,STUDENT'
+    LoginRequestDto:
+      type: object
+      required:  
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+    LoginResponseDto:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseDto'
+        - type: object
+          required:
+            - data
+          properties:
+            data:
+              type: object
+              properties:
+                token:
+                  type: string
+                profile:
+                  $ref: '#/components/schemas/UserProfile'
+    SearchBooksResponseDto:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseDto'
+        - type: object
+          required:
+            - data
+          properties:
+            data:
+              $ref: '#/components/schemas/BookPaginationDto'
+    DetailBookResponseDto:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponseDto'
+        - type: object
+          required:
+            - data
+          properties:
+            data:
+              $ref: '#/components/schemas/Book'

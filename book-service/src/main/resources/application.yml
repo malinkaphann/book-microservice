@@ -1,0 +1,44 @@
+server:
+  port: ${server_port:8080}
+
+spring:
+  application:
+    name: book-service
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    database: POSTGRESQL
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:book_db}
+    username: ${database_username:root}
+    password: ${database_pwd:root}
+    driver-class-name: org.postgresql.Driver
+
+  pagination:
+    default:
+      page: 1
+      size: 10
+      desc: 'desc'
+      asc: 'asc'
+
+security:
+  secret: ${SECURITY_SECRET_KEY:sRtX0wOhl5DVVpPU59uS0VC2TIxrWRXG5NmfslBP7y_MANULIFE_sRtX0wOhl5DVVpPU59uS0VC2TIxrWRXG5Nmfs}
+  expiration: 86400000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:1111/eureka
