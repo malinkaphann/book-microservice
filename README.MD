@@ -59,4 +59,4 @@ Different roles can do differeng things.
 
 The postman collection is in here.
 
-[postman collection](./postman/book_api.postman_collection.json)
+[postman collection](./docs/book_api.postman_collection.json)
