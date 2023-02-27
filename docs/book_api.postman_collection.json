@@ -343,7 +343,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"username\": \"student1\",\n    \"password\": \"student1\"\n}",
+									"raw": "{\n    \"username\": \"student\",\n    \"password\": \"student\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -550,7 +550,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"username\": \"student1\",\n    \"password\": \"student1\",\n    \"studentId\": \"student1\",\n    \"roles\": \"STUDENT\"\n}",
+							"raw": "{\n    \"username\": \"student\",\n    \"password\": \"student\",\n    \"studentId\": \"student\",\n    \"roles\": \"STUDENT\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -589,7 +589,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"username\": \"student1\",\n    \"password\": \"student1\",\n    \"studentId\": \"student1\",\n    \"roles\": \"STUDENT\"\n}",
+							"raw": "{\n    \"username\": \"student\",\n    \"password\": \"student\",\n    \"studentId\": \"student\",\n    \"roles\": \"STUDENT\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -627,7 +627,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"username\": \"student1\",\n    \"password\": \"student1\",\n    \"studentId\": \"student1\",\n    \"roles\": \"STUDENT\"\n}",
+							"raw": "{\n    \"username\": \"student\",\n    \"password\": \"student\",\n    \"studentId\": \"student\",\n    \"roles\": \"STUDENT\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
