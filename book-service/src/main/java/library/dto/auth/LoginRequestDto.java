@@ -1,6 +1,5 @@
 package library.dto.auth;
 
-import library.dto.ApiRequestDto;
 import library.exceptions.ValidationException;
 import library.utils.ValidationUtil;
 import lombok.AllArgsConstructor;
@@ -12,7 +11,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoginRequestDto extends ApiRequestDto {
+public class LoginRequestDto {
 
   private String username;
   private String password;
@@ -43,8 +42,7 @@ public class LoginRequestDto extends ApiRequestDto {
 
   public String toString() {
     return String.format(
-      "LoginRequestDto(request id = %s, " + "username = %s, password = MASKED)",
-      super.requestId,
+      "LoginRequestDto(username = %s, password = MASKED)",
       username
     );
   }

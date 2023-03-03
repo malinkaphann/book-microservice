@@ -6,21 +6,23 @@
 package library.dto.auth;
 
 import org.apache.commons.validator.routines.EmailValidator;
-import library.dto.ApiRequestDto;
 import library.exceptions.ValidationException;
 import library.utils.ValidationUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class SignupRequestDto extends ApiRequestDto {
-
+public class SignupRequestDto {
   private String username;
+  
+  @ToString.Exclude
   private String password;
   private String studentId;
   private String name;

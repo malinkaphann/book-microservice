@@ -15,15 +15,16 @@ import lombok.Setter;
 public class DataApiResponseDto<T> extends ApiResponseDto {
     private T data;
 
-    public DataApiResponseDto(int status, String message, String requestId, 
-        T data) {
-        super(status, message, requestId);
+    public DataApiResponseDto(int status, String message, String requestId, T data) {
+        this.status = status;
+        this.message = message;
+        this.requestId = requestId;
         this.data = data;
     }
 
     public String toString() {
-        return String.format("DataApiResponse(status = %d, " +
-        "message = %s, request id = %s, data = %s)", super.getStatus(), 
+        return String.format("DataApiResponse(status=%d, " +
+        "message=%s, request id=%s)", super.getStatus(), 
         super.getMessage(), super.getRequestId(), this.data);
     }
 }

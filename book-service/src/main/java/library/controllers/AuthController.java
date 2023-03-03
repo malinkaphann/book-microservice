@@ -7,6 +7,7 @@ package library.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -38,31 +39,28 @@ public class AuthController {
     /**
      * Signup a user
      * 
-     * @param requestId a request id
      * @param signupRequestDto a signup request dto
      * @return ApiResponseDto an api response dto
      */
     @PostMapping(value = "/signup")
     public ResponseEntity<ApiResponseDto> signup(
-        final @RequestAttribute(AttributeUtil.REQUEST_ID) String requestId,
-        final @RequestBody SignupRequestDto signupRequestDto
+        final @RequestBody SignupRequestDto requestDto
     ) {
-
-        // put the request id into the dto
-        signupRequestDto.setRequestId(requestId);
-
         // debug log
-        logger.debug("signup request dto = {}", signupRequestDto);
+        logger.debug("signup request dto = {}", requestDto);
+
+         // validate
+        requestDto.validate();
 
         // create user
-        authService.signup(signupRequestDto);
+        authService.signup(requestDto);
 
         // build response object
         ApiResponseDto response = new ApiResponseDto(
             StatusEnum.STATUS_SUCCESS.getValue(),
-            String.format("user = %s is created successfully", 
-            signupRequestDto.getUsername()), requestId
-        );
+                String.format("user = %s is created successfully", 
+                    requestDto.getUsername()),
+                    MDC.get(AttributeUtil.REQUEST_ID));
 
         logger.debug("sign up response dto = {}", response);
 
@@ -78,22 +76,18 @@ public class AuthController {
      */
     @PostMapping(value = "/login")
     public ResponseEntity<DataApiResponseDto<LoginResponseDto>> login(
-        final @RequestAttribute(AttributeUtil.REQUEST_ID) String requestId,
-        final @RequestBody LoginRequestDto loginRequestDto
+        final @RequestBody LoginRequestDto requestDto
     ) {
-
-        // put the request id into the dto
-        loginRequestDto.setRequestId(requestId);
-
         // debug log
-        logger.debug("login request dto = {}", loginRequestDto);
+        logger.debug("login request dto = {}", requestDto);
 
         // build response
-        DataApiResponseDto<LoginResponseDto> response = new DataApiResponseDto<LoginResponseDto>(
+        DataApiResponseDto<LoginResponseDto> response = new DataApiResponseDto<>(
             StatusEnum.STATUS_SUCCESS.getValue(),
-            "successful login",
-            requestId,
-            authService.login(loginRequestDto));
+            "login successfully",
+            MDC.get(AttributeUtil.REQUEST_ID),
+            authService.login(requestDto)
+        );
 
         logger.debug("login response dto = {}", response);
         
@@ -109,13 +103,12 @@ public class AuthController {
      */
     @GetMapping(value = "/profile")
     public ResponseEntity<DataApiResponseDto<ProfileResponseDto>> profile(
-        final @RequestAttribute(AttributeUtil.REQUEST_ID) String requestId,
         Authentication authentication
     ) {
         DataApiResponseDto<ProfileResponseDto> response = new DataApiResponseDto<>(
             StatusEnum.STATUS_SUCCESS.getValue(),
             "successfully fetch the own profile",
-            requestId,
+            MDC.get(AttributeUtil.REQUEST_ID),
             authService.profile(authentication)
         );
 

@@ -12,17 +12,16 @@ public class DatabaseException extends GeneralException {
     
     public DatabaseException(Throwable t) {
         super(t);
+        this.status = StatusEnum.ERROR_DATABASE;
     }
 
     public DatabaseException(String msg) {
-        super(String.format("DatabaseError: %s", msg));
+        super(msg);
+        this.status = StatusEnum.ERROR_DATABASE;
     }
 
     public DatabaseException(String msg, Throwable t) {
-        super(String.format("DatabaseError: %s", msg), t);
-    }
-
-    public int getStatusCode() {
-        return StatusEnum.ERROR_DATABASE.getValue();
+        super(msg, t);
+        this.status = StatusEnum.ERROR_DATABASE;
     }
 }

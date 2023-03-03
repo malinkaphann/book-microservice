@@ -14,9 +14,10 @@ import javax.persistence.criteria.Predicate;
 import java.util.Objects;
 
 @Component
-public class BookSpecification implements CrudSpecification<Book> {
+public class BookSpecification {
 
     public Specification<Book> search(SearchDto searchDto) {
+
         Objects.requireNonNull(searchDto, "the input search dto must not be null");
 
         return (root, query, criteriaBuilder) -> {

@@ -8,12 +8,8 @@ package library.exceptions;
 import library.utils.StatusEnum;
 
 public class ResourceDuplicatedException extends GeneralException {
-
     public ResourceDuplicatedException(String msg) {
         super(msg);
-    }
-
-    public int getStatusCode() {
-        return StatusEnum.ERROR_RESOURCE_DUPLICATED.getValue();
+        this.status = StatusEnum.ERROR_RESOURCE_DUPLICATED;
     }
 }

@@ -8,12 +8,8 @@ package library.exceptions;
 import library.utils.StatusEnum;
 
 public class ResourceNotFoundException extends GeneralException {
-    
     public ResourceNotFoundException(String msg) {
         super(msg);
-    }
-
-    public int getStatusCode() {
-        return StatusEnum.ERROR_RESOURCE_NOT_FOUND.getValue();
+        this.status = StatusEnum.ERROR_RESOURCE_NOT_FOUND;
     }
 }

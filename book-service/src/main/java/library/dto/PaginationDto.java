@@ -10,21 +10,18 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class PaginationDto<T> {
-    private int page;
-    private int size;
-    private int totalPage;
-    private long totalSize;
-    private List<T> list;
+    int page;
+    int size;
+    int totalPage;
+    long totalSize;
 
-    @Override
-    public String toString() {
-        return "PaginationDto(page=" + page + ", size=" + size + ", totalPage=" + totalPage + ", totalSize="
-                + totalSize + ")";
-    }
+    @ToString.Exclude
+    List<T> list;
 }

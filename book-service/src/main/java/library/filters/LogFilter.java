@@ -10,6 +10,7 @@ package library.filters;
 import library.utils.AttributeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import javax.servlet.*;
@@ -41,8 +42,8 @@ public class LogFilter implements Filter {
          * This request id will always be put in the response.
          */
         String requestId = UUID.randomUUID().toString();
-        request.setAttribute(AttributeUtil.REQUEST_ID, requestId);
-
+        MDC.put(AttributeUtil.REQUEST_ID, requestId);
+        
         String ipAddress = request.getHeader("X-FORWARDED-FOR");
         if (ipAddress == null) {
             ipAddress = request.getRemoteAddr();
@@ -63,6 +64,8 @@ public class LogFilter implements Filter {
                 requestId,
                 response.getStatus()
         );
+
+        MDC.remove(AttributeUtil.REQUEST_ID);
     }
 
     @Override

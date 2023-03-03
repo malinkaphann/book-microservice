@@ -5,9 +5,9 @@
  */
 package library.services;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import library.dto.auth.LoginRequestDto;
 import library.dto.auth.LoginResponseDto;
 import library.dto.auth.ProfileResponseDto;
@@ -67,36 +67,31 @@ public class AuthService {
    */
   private void validateSignupRequest(SignupRequestDto requestDto) {
     Objects.requireNonNull(
-      requestDto,
-      "the input request dto must not be null"
-    );
+        requestDto,
+        "the input request dto must not be null");
 
-    // validate the request 
+    // validate the request
     requestDto.validate();
 
     // check if the username is already taken
     if (this.userRepo.existsByUsername(requestDto.getUsername())) {
       throw new ResourceDuplicatedException(
-        String.format("username = %s already taken", requestDto.getUsername())
-      );
+          String.format("username = %s already taken", requestDto.getUsername()));
     }
 
     // check if that student already registered
-    if ((requestDto.getStudentId() != null) && 
+    if ((requestDto.getStudentId() != null) &&
         (this.userProfileRepo.existsByStudentId(requestDto.getStudentId()))) {
       throw new ResourceDuplicatedException(
-        String.format(
-          "studentId = %s already registered",
-          requestDto.getStudentId()
-        )
-      );
+          String.format(
+              "studentId = %s already registered",
+              requestDto.getStudentId()));
     }
 
     // check if that email is already there
     if (this.userProfileRepo.existsByEmail(requestDto.getEmail())) {
       throw new ResourceDuplicatedException(
-        String.format("email = %s already registered")
-      );
+          String.format("email = %s already registered"));
     }
   }
 
@@ -113,58 +108,45 @@ public class AuthService {
     this.validateSignupRequest(requestDto);
 
     // work with the given roles
-    Set<Role> roles = new HashSet<>();
+    List<Role> roles = new ArrayList<>();
     String[] roleArray = requestDto.getRoles().split(",");
 
     for (String roleName : roleArray) {
       Role role = roleRepo
-        .findByName(roleName)
-        .orElseThrow(() ->
-          new ResourceNotFoundException(
-            String.format("role = %s is not found", roleName)
-          )
-        );
+          .findByName(roleName)
+          .orElseThrow(() -> new ResourceNotFoundException(
+              String.format("role = %s is not found", roleName)));
 
       roles.add(role);
-      logger.debug(
-        "request id = {}, added role = {}",
-        requestDto.getRequestId(),
-        role.getName()
-      );
+      logger.debug("added role = {}", role.getName());
     }
 
     try {
       // create new user object
       User user = new User(
-        requestDto.getUsername(),
-        encoder.encode(requestDto.getPassword()),
-        roles
-      );
+          requestDto.getUsername(),
+          encoder.encode(requestDto.getPassword()),
+          roles);
 
       // save user
       user = userRepo.save(user);
 
       UserProfile profile = new UserProfile(
-        requestDto.getName(),
-        requestDto.getPhone(),
-        requestDto.getEmail(),
-        requestDto.getStudentId(),
-        user
-      );
+          requestDto.getName(),
+          requestDto.getPhone(),
+          requestDto.getEmail(),
+          requestDto.getStudentId(),
+          user);
 
       // save user profile
       userProfileRepo.save(profile);
 
       logger.debug(
-        "request id = {}, recently created user = {}",
-        requestDto.getRequestId(),
-        user
-      );
+          "recently created user = {}", user);
 
       return user;
     } catch (Exception e) {
-      // make sure the full stacktrace is logged
-      throw new DatabaseException(e.getMessage(), e);
+      throw new DatabaseException(e);
     }
   }
 
@@ -182,11 +164,9 @@ public class AuthService {
 
     // authenticate the user
     Authentication authentication = authenticationManager.authenticate(
-      new UsernamePasswordAuthenticationToken(
-        requestDto.getUsername(),
-        requestDto.getPassword()
-      )
-    );
+        new UsernamePasswordAuthenticationToken(
+            requestDto.getUsername(),
+            requestDto.getPassword()));
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
     // get user profile
@@ -196,12 +176,9 @@ public class AuthService {
     String token = jwtTokenUtil.generateToken(userDetails);
 
     User user = userRepo
-      .findById(userDetails.getId())
-      .orElseThrow(() ->
-        new ResourceNotFoundException(
-          String.format("user id = %d is not found", userDetails.getId())
-        )
-      );
+        .findById(userDetails.getId())
+        .orElseThrow(() -> new ResourceNotFoundException(
+            String.format("user id = %d is not found", userDetails.getId())));
 
     logger.debug("user who just logged in = {}", user);
 
@@ -215,35 +192,29 @@ public class AuthService {
    */
   public ProfileResponseDto profile(Authentication authentication) {
     Objects.requireNonNull(
-      authentication,
-      "the input authentication object must not be null"
-    );
+        authentication,
+        "the input authentication object must not be null");
 
     String username = authentication.getName();
     if (username == null) {
       throw new GeneralException(
-        "there is no username in the spring boot authentication object"
-      );
+          "there is no username in the spring boot authentication object");
     }
 
     User user = userRepo
-      .findByUsername(username)
-      .orElseThrow(() ->
-        new ResourceNotFoundException(
-          String.format("user by username = %s is not found", username)
-        )
-      );
+        .findByUsername(username)
+        .orElseThrow(() -> new ResourceNotFoundException(
+            String.format("user by username = %s is not found", username)));
 
     UserProfile profile = user.getProfile();
 
     ProfileResponseDto responseDto = new ProfileResponseDto(
-      username,
-      profile != null ? profile.getName() : "",
-      profile != null ? profile.getPhone() : "",
-      profile != null ? profile.getEmail() : "",
-      profile != null ? profile.getPhoto() : "",
-      profile != null ? profile.getStudentId() : ""
-    );
+        username,
+        profile != null ? profile.getName() : "",
+        profile != null ? profile.getPhone() : "",
+        profile != null ? profile.getEmail() : "",
+        profile != null ? profile.getPhoto() : "",
+        profile != null ? profile.getStudentId() : "");
 
     return responseDto;
   }

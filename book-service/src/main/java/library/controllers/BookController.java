@@ -5,79 +5,100 @@
  */
 package library.controllers;
 
-import java.util.Optional;
-import library.dto.ApiResponseDto;
-import library.dto.book.BookRequestDto;
-import library.dto.book.BookSearchDto;
-import library.dto.book.HoldBookRequestDto;
-import library.entities.Book;
-import library.entities.User;
-import library.exceptions.DatabaseException;
-import library.exceptions.ResourceDuplicatedException;
-import library.exceptions.ValidationException;
-import library.services.BookService;
-import library.services.UserService;
-import library.utils.AttributeUtil;
-import library.utils.StatusEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+import library.dto.ApiResponseDto;
+import library.dto.DataApiResponseDto;
+import library.dto.PaginationDto;
+import library.dto.book.BookUpdateRequestDto;
+import library.dto.book.BookCreateRequestDto;
+import library.dto.book.BookSearchDto;
+import library.entities.Book;
+import library.entities.User;
+import library.entities.Book.STATUS;
+import library.exceptions.DatabaseException;
+import library.exceptions.ValidationException;
+import library.services.BookService;
+import library.utils.AttributeUtil;
+import library.utils.StatusEnum;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(value = "/api/v1/book")
-public class BookController
-  extends CrudController<Book, BookSearchDto, BookRequestDto> {
+public class BookController {
 
   private final Logger logger = LoggerFactory.getLogger(BookController.class);
 
-  private UserService userService;
+  @Autowired
   private BookService bookService;
 
-  public BookController(BookService service, UserService userService, BookRequestDto deleteRequestDto) {
-    super(service, deleteRequestDto);
-    this.userService = userService;
-    this.bookService = service;
-    
+
+  /**
+   * Search for books
+   *
+   * @param searchDto a search dto
+   * @return DataApiResponseDto a list of books.
+   */
+  @GetMapping(value = "")
+  public ResponseEntity<DataApiResponseDto<PaginationDto<Book>>> search(
+    final BookSearchDto searchDto
+  ) {
+
+    logger.debug("search request dto = {}", searchDto);
+
+    // validate
+    searchDto.validate();
+
+    // search
+    PaginationDto<Book> data = bookService.search(searchDto);
+
+    // build response
+    DataApiResponseDto<PaginationDto<Book>> response = new DataApiResponseDto<>(
+      StatusEnum.STATUS_SUCCESS.getValue(),
+      "the search is done successfully",
+      MDC.get(AttributeUtil.REQUEST_ID),
+      data
+    );
+
+    logger.debug("search result dto = {}", response);
+
+    return ResponseEntity.ok(response);
   }
 
   /**
-   * Update the resource
+   * Create a book
    *
-   * @param requestId a request id
-   * @param createRequestDto a create request dto
+   * @param requestDto a create book request dto
    * @return ApiResponseDto an api response dto
    */
   @PostMapping("")
   public ResponseEntity<ApiResponseDto> create(
-    final @RequestAttribute(AttributeUtil.REQUEST_ID) String requestId,
-    final @RequestBody BookRequestDto bookCreateRequestDto
-  ) {
-    // put the request id in the request dto
-    bookCreateRequestDto.setRequestId(requestId);
+      final @RequestBody BookCreateRequestDto requestDto) {
 
-    logger.debug("book create request dto: {}", bookCreateRequestDto);
+    logger.info("book create request dto = {}", requestDto);
 
-    bookCreateRequestDto.validate();
-
-    if (this.bookService.existsBookByCode(bookCreateRequestDto.getCode())) {
-      throw new ValidationException(
-        String.format(
-          "book code = %s is already taken",
-          bookCreateRequestDto.getCode()
-        )
-      );
-    }
+    requestDto.validate();
 
     // build object out of the request dto
-    Book book = bookCreateRequestDto.build();
+    String status = requestDto.getStatus();
+    Book book = new Book(
+        requestDto.getCode(),
+        requestDto.getTitle(),
+        requestDto.getAuthor(),
+        requestDto.getCategory(),
+        // default = GOOD
+        status == null || status.isEmpty() ? STATUS.GOOD : STATUS.valueOf(status),
+        requestDto.getDescription());
 
     try {
       bookService.create(book);
@@ -87,120 +108,104 @@ public class BookController
 
     // build the response
     ApiResponseDto response = new ApiResponseDto(
-      StatusEnum.STATUS_SUCCESS.getValue(),
-      "the new book was just created successfully",
-      requestId
-    );
+        StatusEnum.STATUS_SUCCESS.getValue(),
+        "the new book was just created successfully",
+        MDC.get(AttributeUtil.REQUEST_ID));
 
-    logger.debug("book create response dto: {}", response);
+    logger.info("book create response dto: {}", response);
     return ResponseEntity.ok(response);
   }
 
   /**
    * Update the resource
    *
-   * @param requestId a request id
-   * @param id an id of the resource,
+   * @param id               an id of the resource,
    * @param updateRequestDto an update request dto.
    * @return ApiResponseDto an api response dto
    */
   @PutMapping("{id}")
   public ResponseEntity<ApiResponseDto> update(
-    final @RequestAttribute(AttributeUtil.REQUEST_ID) String requestId,
-    final @PathVariable String id,
-    final @RequestBody BookRequestDto updateRequestDto
-  ) {
+      final @PathVariable String id,
+      final @RequestBody BookUpdateRequestDto requestDto) {
     int intId;
     try {
       intId = Integer.parseInt(id);
     } catch (NumberFormatException e) {
       throw new ValidationException(
-        String.format("id = %s is not a number", id)
-      );
-    }
-    // put the request id in the request dto
-    updateRequestDto.setRequestId(requestId);
-
-    logger.debug("update request dto: {}", updateRequestDto);
-
-    Book object = bookService.detail(intId);
-
-    Optional<Book> optionalBook = bookService.findByCodeAndIdNot(
-      updateRequestDto.getCode(),
-      intId
-    );
-
-    if (optionalBook.isPresent()) {
-      throw new ResourceDuplicatedException(
-        String.format(
-          "code = %s was already taken by book id = %d",
-          optionalBook.get().getCode(),
-          optionalBook.get().getId()
-        )
-      );
+          String.format("id = %s is not a number", id));
     }
 
-    Book updatedObject = updateRequestDto.build(object);
+    logger.info("requested to update book id = {} with new values = {}",
+        id, requestDto);
+
+    Book updatedObject = new Book(
+        requestDto.getCode(),
+        requestDto.getTitle(),
+        requestDto.getAuthor(),
+        requestDto.getCategory(),
+        STATUS.valueOf(requestDto.getStatus()),
+        requestDto.getDescription());
 
     // update resource
     bookService.update(intId, updatedObject);
 
     // build the response
     ApiResponseDto response = new ApiResponseDto(
-      StatusEnum.STATUS_SUCCESS.getValue(),
-      String.format("the resource id = %s was just updated successfully", id),
-      requestId
-    );
+        StatusEnum.STATUS_SUCCESS.getValue(),
+        String.format("the resource id = %s was just updated successfully", id),
+        MDC.get(AttributeUtil.REQUEST_ID));
 
-    logger.debug("update response dto: {}", response);
+    logger.info("update response dto: {}", response);
 
     return ResponseEntity.ok(response);
   }
 
   /**
-   * User hold a book.
+   * Hold a book for a user.
    *
    * @param requestId
    * @param requestDto
    * @return
    */
-  @PostMapping("hold")
+  @PostMapping("/hold/book/{bookId}/user/{userId}")
   public ResponseEntity<ApiResponseDto> hold(
-    final @RequestAttribute(AttributeUtil.REQUEST_ID) String requestId,
-    final @RequestBody HoldBookRequestDto requestDto
-  ) {
-    requestDto.validate();
+      final @PathVariable String bookId,
+      final @PathVariable String userId) {
 
-    int userId = Integer.parseInt(requestDto.getUserId());
-    int bookId = Integer.parseInt(requestDto.getBookId());
+    int intBookId;
+    try {
+      intBookId = Integer.parseInt(bookId);
+    } catch (NumberFormatException e) {
+      throw new ValidationException(String.format(
+          "bookId = %s is not a number"));
+    }
 
-    // put the request id in the request dto
-    requestDto.setRequestId(requestId);
+    int intUserId;
+    try {
+      intUserId = Integer.parseInt(userId);
+    } catch (NumberFormatException e) {
+      throw new ValidationException(String.format(
+          "userId = %s is not a number", userId));
+    }
 
-    logger.debug("hold request dto: {}", requestDto);
+    logger.info("requested to hold a book id = {} for user id = {}",
+        bookId, userId);
 
-    User user = userService.detail(userId);
-    Book book = bookService.detail(bookId);
-
-    bookService.hold(user, book);
+    Book book = bookService.detail(intBookId);
+    User user = bookService.hold(intBookId, intUserId);
 
     ApiResponseDto response = new ApiResponseDto(
-      StatusEnum.STATUS_SUCCESS.getValue(),
-      String.format(
-        "user[id = %d, username = %s] hold book [id = %d, title = %s]",
-        user.getId(),
-        user.getUsername(),
-        book.getId(),
-        book.getTitle()
-      ),
-      requestId
-    );
+        StatusEnum.STATUS_SUCCESS.getValue(),
+        String.format(
+            "user = %s successfully hold the book = %s",
+            user,
+            book),
+        MDC.get(AttributeUtil.REQUEST_ID));
 
-    logger.debug("hold response dto = {}", response);
+    logger.info("hold response dto = {}", response);
 
     return ResponseEntity.ok(response);
   }
-
 
   /**
    * User hold a book.
@@ -209,41 +214,115 @@ public class BookController
    * @param requestDto
    * @return
    */
-  @DeleteMapping("hold")
+  @DeleteMapping("/hold/book/{bookId}/user/{userId}")
   public ResponseEntity<ApiResponseDto> unhold(
-    final @RequestAttribute(AttributeUtil.REQUEST_ID) String requestId,
-    final @RequestBody HoldBookRequestDto requestDto
+      final @PathVariable String bookId,
+      final @PathVariable String userId
   ) {
-    requestDto.validate();
+    
+    int intBookId;
+    try {
+      intBookId = Integer.parseInt(bookId);
+    } catch (NumberFormatException e) {
+      throw new ValidationException(String.format(
+          "bookId = %s is not a number"));
+    }
 
-    int userId = Integer.parseInt(requestDto.getUserId());
-    int bookId = Integer.parseInt(requestDto.getBookId());
+    int intUserId;
+    try {
+      intUserId = Integer.parseInt(userId);
+    } catch (NumberFormatException e) {
+      throw new ValidationException(String.format(
+          "userId = %s is not a number", userId));
+    }
 
-    // put the request id in the request dto
-    requestDto.setRequestId(requestId);
+    logger.info("requested to release a book id = {} from user id = {}",
+        bookId, userId);
 
-    logger.debug("unhold request dto: {}", requestDto);
-
-    User user = userService.detail(userId);
-    Book book = bookService.detail(bookId);
-
-    bookService.unhold(user, book);
+    Book book = bookService.detail(intBookId);
+    User user = bookService.unhold(intBookId, intUserId);
 
     ApiResponseDto response = new ApiResponseDto(
-      StatusEnum.STATUS_SUCCESS.getValue(),
-      String.format(
-        "user[id = %d, username = %s] unhold the book [id = %d, title = %s]",
-        user.getId(),
-        user.getUsername(),
-        book.getId(),
-        book.getTitle()
-      ),
-      requestId
-    );
+        StatusEnum.STATUS_SUCCESS.getValue(),
+        String.format(
+            "user = %s successfully release the book = %s",
+            user, book),
+        MDC.get(AttributeUtil.REQUEST_ID));
 
-    logger.debug("unhold response dto = {}", response);
+    logger.info("unhold response dto = {}", response);
 
     return ResponseEntity.ok(response);
   }
 
+    /**
+   * Fetch the resource's detail
+   *
+   * @param id an id of the resource
+   * @return DataApiResponseDto
+   */
+  @GetMapping(value = "{id}")
+  public ResponseEntity<DataApiResponseDto<Book>> detail(
+    final @PathVariable String id
+  ) {
+
+    int intId;
+    try {
+      intId = Integer.parseInt(id);
+    } catch(NumberFormatException e) {
+      throw new ValidationException(String.format("id = %s not a number"));
+    }
+
+    logger.debug("request to fetch detail of book id = {}", id);
+
+    // fetch the detail
+    Book book = bookService.detail(intId);
+
+    // build the response
+    DataApiResponseDto<Book> response = new DataApiResponseDto<Book>(
+      StatusEnum.STATUS_SUCCESS.getValue(),
+      String.format("the resource id = %s is fetched successfully", id),
+      MDC.get(AttributeUtil.REQUEST_ID),
+      book
+    );
+
+    logger.debug("detail fetch response dto = {}", response);
+
+    return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Delete the resource
+   *
+   * @param id id of entity that needs to be removed
+   * @return ApiResponseDto an api response dto
+   */
+  @DeleteMapping("{id}")
+  public ResponseEntity<ApiResponseDto> delete(
+    final @PathVariable String id
+  ) {
+
+    int intId;
+    try {
+       intId = Integer.parseInt(id);
+    } catch(NumberFormatException e) {
+      throw new ValidationException(String.format(
+        "book id = %s is not a number", id));
+    }
+
+    logger.debug("request to delete book id = {}", id);
+
+    // soft delete the resource
+    bookService.delete(intId);
+
+    // build the response
+    ApiResponseDto response = new ApiResponseDto(
+      StatusEnum.STATUS_SUCCESS.getValue(),
+      String.format("the resource id = %s was just deleted successfully", id),
+      MDC.get(AttributeUtil.REQUEST_ID)
+    );
+
+    logger.debug("delete response dto = {}", response);
+
+    return ResponseEntity.ok(response);
+  }
 }

@@ -19,7 +19,8 @@ public class BookSearchDto extends SearchDto {
 
         super.validate();
 
-        String[] sortFields = new String[] { "id", "code", "title", "author", "category", "description" };
+        String[] sortFields = new String[] { "id", "code", "title", "author", 
+            "category", "description" };
         if(Arrays.stream(sortFields).noneMatch(super.getSort()::equals)) {
             throw new ValidationException(String.format(
                 "books can not be sorted by %s, the correct values = %s",

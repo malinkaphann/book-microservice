@@ -94,6 +94,15 @@ public class SecurityConfig {
                     .hasAnyRole(
                         RoleEnum.ADMIN.name(), 
                         RoleEnum.LIBRARIAN.name())
+
+                // only librarian can hold or unhold
+                .antMatchers(HttpMethod.POST, "/api/v1/book/hold/**")
+                    .hasAnyRole(
+                        RoleEnum.LIBRARIAN.name())
+                .antMatchers(HttpMethod.DELETE, "/api/v1/book/hold/**")
+                    .hasAnyRole(
+                        RoleEnum.LIBRARIAN.name())
+                    
                 
                 // allow any logged-in user to get his or her profile
                 .antMatchers(HttpMethod.GET, "/api/v1/auth/profile")

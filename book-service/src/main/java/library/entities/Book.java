@@ -5,27 +5,28 @@
  */
 package library.entities;
 
-import java.util.Set;
-
+import java.util.ArrayList;
+import java.util.List;
 import javax.persistence.*;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
+@ToString
 @NoArgsConstructor
 @Entity
 @Table(name = "book", schema = "public")
-public class Book extends BaseEntity<Integer> {
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    private Integer id;
+public class Book extends BaseEntity {
+
+    public enum STATUS {
+        GOOD,    // default
+        OLD,
+        DELETED
+    };
 
     @Column(name = "code", nullable = false)
     private String code;
@@ -39,18 +40,20 @@ public class Book extends BaseEntity<Integer> {
     @Column(name = "category", nullable = false)
     private String category;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private String status;
+    private STATUS status;
 
     @Column(name = "description")
     private String description;
 
-    @ManyToMany(mappedBy = "books")
     @JsonIgnore
-    private Set<User> users;
+    @ToString.Exclude
+    @ManyToMany(mappedBy = "books")
+    private List<User> users = new ArrayList<>();
 
     public Book(String code, String title, String author, String category,
-        String status, String description) {
+        STATUS status, String description) {
         this.code = code;
         this.title = title;
         this.author = author;

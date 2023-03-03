@@ -9,12 +9,8 @@ package library.exceptions;
 import library.utils.StatusEnum;
 
 public class ValidationException extends GeneralException {
-    
     public ValidationException(String msg) {
         super(msg);
-    }
-
-    public int getStatusCode() {
-        return StatusEnum.ERROR_VALIDATION.getValue();
+        this.status = StatusEnum.ERROR_VALIDATION;
     }
 }

@@ -6,23 +6,25 @@
 package library.dto;
 
 import java.util.Objects;
+import org.apache.commons.lang3.EnumUtils;
 import library.exceptions.ValidationException;
 import library.utils.PaginationUtil.ORDER;
 import library.utils.ValidationUtil;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Setter
 @Getter
+@ToString
 @NoArgsConstructor
-public class SearchDto extends ApiRequestDto {
-    
-    private String search = "";
-    private String page = "1";
-    private String size = "10";
-    private String sort = "id";
-    private String order = ORDER.DESC.getValue();
+public class SearchDto {
+    String search = "";
+    String page = "1";
+    String size = "10";
+    String sort = "id";
+    String order = ORDER.DESC.getValue();
 
     public void validate() {
 
@@ -34,11 +36,11 @@ public class SearchDto extends ApiRequestDto {
          }
 
          // validate order
-         if ((!Objects.equals(this.order, ORDER.ASC.getValue()) && 
-             (!Objects.equals(this.order, ORDER.DESC.getValue())))) {
+         if ((Objects.equals(this.order, ORDER.ASC.getValue())) && 
+            (Objects.equals(this.order, ORDER.DESC.getValue()))) {
              throw new ValidationException(String.format(
-                 "can not be ordered by %s, the correct values = [desc, asc]", 
-                 order));
+                 "can not be ordered by %s, the correct values = %s", 
+                    order, EnumUtils.getEnumList(ORDER.class).toString().toLowerCase()));
          }
 
          // validate page
@@ -56,13 +58,5 @@ public class SearchDto extends ApiRequestDto {
             throw new ValidationException(String.format(
                 "size = %s is not a number", this.size));
          }
-    }
-
-    public String toString() {
-        return String.format(
-            "SearchDto(request id = %s, search = %s, " +
-            "page = %s, size = %s, sort = %s, order = %s)",
-            super.requestId, this.search, this.page, 
-            this.size, this.sort, this.order);
     }
 }

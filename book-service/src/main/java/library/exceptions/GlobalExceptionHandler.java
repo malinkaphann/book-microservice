@@ -9,6 +9,7 @@ package library.exceptions;
 import library.dto.ApiResponseDto;
 import library.utils.AttributeUtil;
 import library.utils.StatusEnum;
+import org.jboss.logging.MDC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -30,17 +31,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
   /**
    *
-   * @param request
-   * @return
-   */
-  private String getRequestId(WebRequest request) {
-    Object attribute = request.getAttribute(AttributeUtil.REQUEST_ID, 0);
-    String requestId = attribute != null ? attribute.toString() : "";
-    return requestId;
-  }
-
-  /**
-   *
    * @param ex
    * @param request
    * @return
@@ -50,19 +40,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     ResourceNotFoundException ex,
     WebRequest request
   ) {
-    String requestId = getRequestId(request);
-    logger.error(
-      String.format(
-        "request id = %s, message = %s",
-        requestId,
-        ex.getMessage()
-      ),
-      ex
-    );
+    logger.error(ex.getMessage(), ex);
     return new ResponseEntity<ApiResponseDto>(
-      new ApiResponseDto(ex.getStatusCode(), 
+      new ApiResponseDto(ex.getStatus().getValue(), 
         String.format("ResourceNotFoundError: %s", ex.getMessage()), 
-        requestId),
+        MDC.get(AttributeUtil.REQUEST_ID).toString()),
       HttpStatus.NOT_FOUND
     );
   }
@@ -78,19 +60,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     ResourceDuplicatedException ex,
     WebRequest request
   ) {
-    String requestId = getRequestId(request);
-    logger.error(
-      String.format(
-        "request id = %s, message = %s",
-        requestId,
-        ex.getMessage()
-      ),
-      ex
-    );
+    logger.error(ex.getMessage(), ex);
     return new ResponseEntity<ApiResponseDto>(
-      new ApiResponseDto(ex.getStatusCode(), 
+      new ApiResponseDto(ex.getStatus().getValue(), 
         String.format("ResourceDuplicatedError: %s", ex.getMessage()),
-        requestId),
+        MDC.get(AttributeUtil.REQUEST_ID).toString()),
       HttpStatus.BAD_REQUEST
     );
   }
@@ -106,19 +80,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     ValidationException ex,
     WebRequest request
   ) {
-    String requestId = getRequestId(request);
-    logger.error(
-      String.format(
-        "request id = %s, message = %s",
-        requestId,
-        ex.getMessage()
-      ),
-      ex
-    );
+    logger.error(ex.getMessage(), ex);
     return new ResponseEntity<ApiResponseDto>(
-      new ApiResponseDto(ex.getStatusCode(), 
+      new ApiResponseDto(ex.getStatus().getValue(), 
         String.format("ValidationError: %s", ex.getMessage()), 
-        requestId),
+        MDC.get(AttributeUtil.REQUEST_ID).toString()),
       HttpStatus.BAD_REQUEST
     );
   }
@@ -134,19 +100,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     DatabaseException ex,
     WebRequest request
   ) {
-    String requestId = getRequestId(request);
-    logger.error(
-      String.format(
-        "request id = %s, message = %s",
-        requestId,
-        ex.getMessage()
-      ),
-      ex
-    );
+    logger.error(ex.getMessage(), ex);
     return new ResponseEntity<ApiResponseDto>(
-      new ApiResponseDto(ex.getStatusCode(), 
+      new ApiResponseDto(ex.getStatus().getValue(), 
         String.format("DatabaseError: %s", ex.getMessage()), 
-        requestId),
+        MDC.get(AttributeUtil.REQUEST_ID).toString()),
       HttpStatus.INTERNAL_SERVER_ERROR
     );
   }
@@ -161,21 +119,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     BadCredentialsException ex,
     WebRequest request
   ) {
-    String requestId = getRequestId(request);
-    logger.error(
-      String.format(
-        "request id = %s, message = %s",
-        requestId,
-        ex.getMessage()
-      ),
-      ex
-    );
+    logger.error(ex.getMessage(), ex);
     return new ResponseEntity<ApiResponseDto>(
       new ApiResponseDto(
         StatusEnum.ERROR_UNEXPECTED.getValue(),
         "Error: login fails",
-        requestId
-      ),
+        MDC.get(AttributeUtil.REQUEST_ID).toString()),
       HttpStatus.BAD_REQUEST
     );
   }
@@ -190,21 +139,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     UnsupportedOperationException ex,
     WebRequest request
   ) {
-    String requestId = getRequestId(request);
-    logger.error(
-      String.format(
-        "request id = %s, message = %s",
-        requestId,
-        ex.getMessage()
-      ),
-      ex
-    );
+    logger.error(ex.getMessage(), ex);
     return new ResponseEntity<ApiResponseDto>(
       new ApiResponseDto(
         StatusEnum.ERROR_UNEXPECTED.getValue(),
         "Error: unsupported yet",
-        requestId
-      ),
+        MDC.get(AttributeUtil.REQUEST_ID).toString()),
       HttpStatus.BAD_REQUEST
     );
   }
@@ -219,21 +159,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     Exception ex,
     WebRequest request
   ) {
-    String requestId = getRequestId(request);
-    logger.error(
-      String.format(
-        "request id = %s, message = %s",
-        requestId,
-        ex.getMessage()
-      ),
-      ex
-    );
+    logger.error(ex.getMessage(), ex);
     return new ResponseEntity<ApiResponseDto>(
       new ApiResponseDto(
         StatusEnum.ERROR_UNEXPECTED.getValue(),
         String.format("Error: %s", ex.getMessage()),
-        requestId
-      ),
+        MDC.get(AttributeUtil.REQUEST_ID).toString()),
       HttpStatus.INTERNAL_SERVER_ERROR
     );
   }

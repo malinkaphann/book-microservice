@@ -7,8 +7,16 @@
  */
 package library.exceptions;
 
+import library.utils.StatusEnum;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class GeneralException extends RuntimeException {
 
+    protected StatusEnum status;
+    
     public GeneralException(Throwable t) {
         super(t);
     }

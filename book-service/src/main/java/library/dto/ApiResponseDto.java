@@ -6,14 +6,18 @@
 package library.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-@Data
+@Getter
+@Setter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class ApiResponseDto {
-    private int status;
-    private String message;
+    protected int status;
+    protected String message;
     protected String requestId;
 }
