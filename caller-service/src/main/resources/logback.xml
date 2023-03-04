@@ -10,14 +10,14 @@
 
  <appender name="FILE"
 	class="ch.qos.logback.core.rolling.RollingFileAppender">
-	<file>/Users/malinka/projects/library/logs/library.log</file>
+	<file>/Users/malinka/projects/library/logs/caller.log</file>
 	<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
 	   <Pattern>%d{yyyy-MM-dd_HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
            </Pattern>
 	</encoder>
 
 	<rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-		<FileNamePattern>/Users/malinka/projects/library/logs/library.%i.log.zip</FileNamePattern>
+		<FileNamePattern>/Users/malinka/projects/library/logs/caller.%i.log.zip</FileNamePattern>
 		<MinIndex>1</MinIndex>
 		<MaxIndex>10</MaxIndex>
 	</rollingPolicy>

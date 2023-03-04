@@ -29,10 +29,12 @@ services:
       - PGADMIN_CONFIG_CONSOLE_LOG_LEVEL=10
 
   eureka:
-    container_name: eureka
-    image: springcloud/eureka:latest
+    container_name: eureka-service
+    image: eureka-service
+    build: ./eureka-service
     ports:
       - 8761:8761
+  
   doc:
     image: swaggerapi/swagger-ui
     container_name: book-api-doc

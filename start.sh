@@ -1,9 +1,5 @@
 #!/bin/sh
-cd eureka
-gradle clean
-gradle build
-
-cd ../book-service
+cd book-service
 gradle clean
 gradle build
 
