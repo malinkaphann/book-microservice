@@ -17,15 +17,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
 
-@Component
-public class LogFilter extends OncePerRequestFilter {
+public class LogFilter {
 
   private static final Logger logger = LoggerFactory.getLogger(LogFilter.class);
 
-  @Override
   protected void doFilterInternal(
     HttpServletRequest req,
     HttpServletResponse res,

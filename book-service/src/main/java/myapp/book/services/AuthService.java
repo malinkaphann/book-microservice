@@ -72,9 +72,6 @@ public class AuthService {
     );
     logger.info("started validating the sign up request = {}", requestDto);
 
-    // validate the request
-    requestDto.validate();
-
     // check if the username is already taken
     if (userRepo.existsByUsername(requestDto.getUsername())) {
       throw new ResourceDuplicatedException(
@@ -136,22 +133,22 @@ public class AuthService {
 
     // work with the given roles
     List<Role> roles = new ArrayList<>();
-    String[] roleArray = requestDto.getRoles().split(",");
-    logger.debug("roles from the request dto = {}", roleArray.toString());
 
-    for (String roleName : roleArray) {
+    logger.debug("roles from the request dto = {}", requestDto.getRoles());
+
+    for (Role roleFromDto : requestDto.getRoles()) {
       Role role = roleRepo
-        .findByName(roleName)
+        .findByName(roleFromDto.getName())
         .orElseThrow(() ->
           new ResourceNotFoundException(
-            String.format("role = %s is not found", roleName)
+            String.format("role = %s is not found", roleFromDto.getName())
           )
         );
       roles.add(role);
       logger.debug("role to be assigned to new user = {}", role.getName());
     }
 
-    logger.debug("new user all roles = {}", roles);
+    logger.debug("new user will be created having these roles = {}", roles);
 
     // create new user object
     User user = new User(
@@ -210,9 +207,6 @@ public class AuthService {
       "started to login a user by processing a request dto = {}",
       requestDto
     );
-
-    // validate
-    requestDto.validate();
 
     // authenticate the user
     Authentication authentication = authenticationManager.authenticate(

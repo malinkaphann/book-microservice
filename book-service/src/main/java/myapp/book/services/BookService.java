@@ -1,6 +1,10 @@
+/**
+ * This is the book service.
+ * 
+ * @author Phann Malinka
+ */
 package myapp.book.services;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -11,7 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import myapp.book.dto.PaginationDto;
-import myapp.book.dto.book.BookSearchDto;
+import myapp.book.dto.SearchDto;
 import myapp.book.entities.*;
 import myapp.book.entities.Book.STATUS;
 import myapp.book.exceptions.DatabaseException;
@@ -19,14 +23,10 @@ import myapp.book.exceptions.ResourceDuplicatedException;
 import myapp.book.exceptions.ResourceNotFoundException;
 import myapp.book.exceptions.ValidationException;
 import myapp.book.repositories.BookRepository;
-import myapp.book.repositories.UserRepository;
 import myapp.book.specifications.BookSpecification;
 
 @Service
 public class BookService {
-
-  @Autowired
-  private UserRepository userRepo;
 
   @Autowired
   private BookRepository bookRepo;
@@ -44,17 +44,17 @@ public class BookService {
    * @throws NullPointerException when the input search dto is null
    * @throws DatabaseException    when error from database
    */
-  public PaginationDto<Book> search(final BookSearchDto searchDto) {
+  public PaginationDto<Book> search(final SearchDto searchDto) {
+
     Objects.requireNonNull(searchDto, "the input search dto must not be null");
 
     logger.debug("search dto = {}", searchDto);
 
-    int page = Integer.parseInt(searchDto.getPage()) - 1;
-    int size = Integer.parseInt(searchDto.getSize());
-
-    PageRequest pageRequest = PageRequest.of(page, size);
+    PageRequest pageRequest = PageRequest.of(searchDto.getPage() - 1, 
+      searchDto.getSize());
     Page<Book> result = Page.empty();
 
+    // search
     try {
       Specification<Book> spec = bookSpec.search(searchDto);
       result = bookRepo.findAll(spec, pageRequest);
@@ -70,25 +70,36 @@ public class BookService {
         result.getTotalElements(),
         result.getContent());
 
+    logger.debug("search result dto = {}", data);
+
     return data;
   }
 
   /**
    * Create a book
-   *
+   * 
+   * @param book a book to create
+   * @return Book a book just created
    * @throws NullPointerException when the input request dto is null
    * @throws ValidationException  when the code is already taken
    * @throws DatabaseException    when error from database
    */
-  public void create(final Book book) {
+  public Book create(final Book book) {
+
     Objects.requireNonNull(book, "the input object must not be null");
 
     logger.debug("want to create a new book = {}", book);
 
     if (bookRepo.existsByCode(book.getCode())) {
-      throw new ValidationException(
+      throw new ResourceDuplicatedException(
           String.format("book code = %s is already taken", book.getCode()));
     }
+
+    // make sure that the status is getting the default value
+    if (book.getStatus() == null) {
+      book.setStatus(STATUS.GOOD.name());
+    }
+
     Book newBook;
 
     // save new object
@@ -99,6 +110,8 @@ public class BookService {
     }
 
     logger.debug("book just created = {}", newBook);
+
+    return newBook;
   }
 
   /**
@@ -111,14 +124,15 @@ public class BookService {
    * @throws DatabaseException when error from database
    */
   public Book detail(final int id) {
+
     if (id <= 0) {
       throw new IllegalArgumentException(
-          "the input book id must not be negative");
+          "the input book id must not be zero or negative");
     }
 
     logger.debug("want to fetch book id = {}", id);
 
-    Optional<Book> optionalOfBook = Optional.empty();
+    Optional<Book> optionalOfBook;
 
     // find
     try {
@@ -145,20 +159,23 @@ public class BookService {
    *
    * @param id   an id of a book
    * @param book a new values
+   * @return Book an updated book
    * @throws NullPointerException      when the given newBook is null
    * @throws IllegalArgumentException  when the given book id is negative
    * @throws DatabaseException         when error from database
    * @throws ResourceNotFoundException when there is no book by the given id
    */
-  public void update(final int id, final Book newBook) {
+  public Book update(final int id, final Book newBook) {
+
     Objects.requireNonNull(newBook, "the input book must not be null");
 
     if (id <= 0) {
       throw new IllegalArgumentException(
-          "the input book id must not be negative");
+          "the input book id must not be zero or negative");
     }
 
-    logger.debug("wanted to update book id = {} with values = {}", id, newBook);
+    logger.debug("wanted to update book id = {} with values = {}", 
+      id, newBook);
 
     // find it
     Optional<Book> optionalOfBook = Optional.empty();
@@ -176,7 +193,7 @@ public class BookService {
     Book book = optionalOfBook.get();
 
     // update code if given
-    String newCode = book.getCode();
+    String newCode = newBook.getCode();
     if (newCode != null && !newCode.isEmpty()) {
 
       // new code must not be the same as the old code used by other books
@@ -196,28 +213,40 @@ public class BookService {
       book.setCode(newCode);
     }
 
-    // update title if given
-    String newTitle = book.getTitle();
-    if (newTitle != null && !newTitle.isEmpty()) {
+    // update title if it is given and it is new value.
+    String newTitle = newBook.getTitle();
+    if ((newTitle != null) && 
+      (!newTitle.isEmpty()) &&
+      (Objects.equals(newTitle, book.getTitle()))) {
       book.setTitle(newTitle);
     }
 
-    // update author if given
-    String newAuthor = book.getAuthor();
-    if (newAuthor != null && !newAuthor.isEmpty()) {
+    // update author if it is given and it is new value.
+    String newAuthor = newBook.getAuthor();
+    if ((newAuthor != null) && 
+        (!newAuthor.isEmpty()) &&
+        (Objects.equals(newAuthor, book.getAuthor()))) {
       book.setAuthor(newAuthor);
     }
 
-    // update category if given
-    String newCategory = book.getCategory();
-    if (newCategory != null && !newCategory.isEmpty()) {
+    // update category if it is given and it is new value
+    String newCategory = newBook.getCategory();
+    if ((newCategory != null) &&
+        (!newCategory.isEmpty()) &&
+        (Objects.equals(newCategory, book.getCategory()))) {
       book.setCategory(newCategory);
     }
 
     // update description if given
-    String newDesc = book.getDescription();
+    String newDesc = newBook.getDescription();
     if (newDesc != null && !newDesc.isEmpty()) {
       book.setDescription(newDesc);
+    }
+
+    // update status
+    String status = newBook.getStatus();
+    if (status != null && !status.isEmpty()) {
+      book.setStatus(status);
     }
 
     Book updatedBook;
@@ -230,25 +259,29 @@ public class BookService {
     }
 
     logger.debug("updated book = {}", updatedBook);
+
+    return updatedBook;
   }
 
   /**
    * Soft delete the book
    *
    * @param id an id
+   * @return Book a deleted book
    * @throws IllegalArgumentException when the given book id is negative
    * @throws DatabaseException        when error from database
    */
-  public void delete(final int id) {
+  public Book delete(final int id) {
+
     if (id <= 0) {
       throw new IllegalArgumentException(
-          "the input book id must not be negative");
+          "the input book id must not be zero or negative");
     }
 
     logger.debug("wanted to delete a book id = {}", id);
 
     Book book = this.detail(id);
-    book.setStatus(STATUS.DELETED);
+    book.setStatus(STATUS.DELETED.name());
 
     Book updatedBook;
     try {
@@ -258,117 +291,8 @@ public class BookService {
     }
 
     logger.debug("deleted book = {}", updatedBook);
+
+    return updatedBook;
   }
 
-  /**
-   * Hold a book for a user
-   *
-   * @throws IllegalArgumentException when the given bookId or userId is negative
-   * @throws ResourceNotFoundException when there is no such userId or bookId
-   * @throws ValidationException  when the validation has error
-   * @throws DatabaseException    when error from database
-   */
-  public User hold(final int bookId, final int userId) {
-    if (bookId <= 0) {
-      throw new IllegalArgumentException(
-          "the input bookId must not be negative");
-    }
-
-    if (userId <= 0) {
-      throw new IllegalArgumentException(
-          "the input userId must not be negative");
-    }
-
-    logger.debug("wanted to hold book id = {} for user id = {}", bookId, userId);
-
-    Book book = detail(bookId);
-
-    User user = userRepo
-        .findById(userId)
-        .orElseThrow(() -> new ResourceNotFoundException(
-            String.format("user by id = %d is not found", userId)));
-
-    List<Book> books = user.getBooks();
-
-    // check is that user already hold that book
-    if (books.contains(book)) {
-      throw new ValidationException(
-          String.format("user = %s already hold book = %s", user, book));
-    }
-
-    // one user can hold maximum of 3 books
-    int count = books.size();
-    if (count >= 3) {
-      throw new ValidationException(
-          String.format("user = %s already hold 3 books", user));
-    }
-
-    User updatedUser;
-
-    try {
-      books.add(book);
-      updatedUser = userRepo.save(user);
-      books = updatedUser.getBooks();
-    } catch (Exception e) {
-      throw new DatabaseException(e);
-    }
-
-    logger.debug("user = %s is now holding books = %s", books);
-
-    return updatedUser;
-  }
-
-  /**
-   * Release a book from a user
-   *
-   * @throws IllegalArgumentException when the given bookId or userId is negative
-   * @throws ResourceNotFoundException when the userId is not found
-   * @throws ValidationException  when the validation has error
-   * @throws DatabaseException    when error from database
-   */
-  public User unhold(final int bookId, final int userId) {
-    if (bookId <= 0) {
-      throw new IllegalArgumentException(
-          "the input bookId must not be negative");
-    }
-
-    if (userId <= 0) {
-      throw new IllegalArgumentException(
-          "the input userId must not be negative");
-    }
-
-    logger.debug(
-        "want to release book id = {} from user id = {}",
-        bookId,
-        userId);
-
-    User user = userRepo
-        .findById(userId)
-        .orElseThrow(() -> new ResourceNotFoundException(
-            String.format("user id = %d is not found", userId)));
-
-    Book book = detail(bookId);
-
-    List<Book> books = user.getBooks();
-
-    // check is that user hold that book
-    if (!books.contains(book)) {
-      throw new ValidationException(
-          String.format("user = %s didn't held the book = %s", user, book));
-    }
-
-    // now it is ok to unhold
-    User updatedUser;
-    try {
-      books.remove(book);
-      updatedUser = userRepo.save(user);
-      books = updatedUser.getBooks();
-    } catch (Exception e) {
-      throw new DatabaseException(e);
-    }
-
-    logger.debug("user = {} is holding books = {}", updatedUser, books);
-
-    return updatedUser;
-  }
 }

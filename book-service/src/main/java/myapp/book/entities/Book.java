@@ -13,6 +13,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import myapp.book.utils.CategoryEnum;
+import myapp.book.validators.ValueOfEnum;
 
 @Getter
 @Setter
@@ -29,31 +31,32 @@ public class Book extends BaseEntity {
     };
 
     @Column(name = "code", nullable = false)
-    private String code;
+    String code;
 
     @Column(name = "title", nullable = false)
-    private String title;
+    String title;
 
     @Column(name = "author", nullable = false)
-    private String author;
+    String author;
 
+    @ValueOfEnum(enumClass = CategoryEnum.class, message = "must be one of NOVEL, STUDY, COMICS")
     @Column(name = "category", nullable = false)
-    private String category;
+    String category;
 
-    @Enumerated(EnumType.STRING)
+    @ValueOfEnum(enumClass = STATUS.class, message = "must be one of GOOD, OLD, DELETED")
     @Column(name = "status", nullable = false)
-    private STATUS status;
+    String status;
 
     @Column(name = "description")
-    private String description;
+    String description;
 
     @JsonIgnore
     @ToString.Exclude
     @ManyToMany(mappedBy = "books")
-    private List<User> users = new ArrayList<>();
+    List<User> users = new ArrayList<>();
 
     public Book(String code, String title, String author, String category,
-        STATUS status, String description) {
+        String status, String description) {
         this.code = code;
         this.title = title;
         this.author = author;

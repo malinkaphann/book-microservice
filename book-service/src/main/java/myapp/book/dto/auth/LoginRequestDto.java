@@ -1,48 +1,27 @@
+/**
+ * This is the login request dto.
+ * 
+ * @author Phann Malinka
+ */
 package myapp.book.dto.auth;
 
-import myapp.book.exceptions.ValidationException;
 import myapp.book.utils.ValidationUtil;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
+import lombok.Data;
+import lombok.ToString;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Data
 public class LoginRequestDto {
-  private String username;
-  private String password;
 
-  public void validate() {
-    if (this.username == null) {
-      throw new ValidationException("username is required");
-    }
+  @NotEmpty(message = "username is required")
+  @Size(max = ValidationUtil.MAX_LEN_USERNAME, 
+    message = "the username = '${validatedValue}' must be shorter than {max} characters")
+  String username;
 
-    ValidationUtil.validateSize(
-      "username",
-      this.username,
-      ValidationUtil.MIN_LEN_USERNAME,
-      ValidationUtil.MAX_LEN_USERNAME
-    );
-
-    if (this.password == null) {
-      throw new ValidationException("password is required");
-    }
-
-    ValidationUtil.validateSize(
-      "password",
-      this.password,
-      ValidationUtil.MIN_LEN_PASSWORD,
-      ValidationUtil.MAX_LEN_PASSWORD
-    );
-  }
-
-  public String toString() {
-    return String.format(
-      "LoginRequestDto(username = %s, password = MASKED)",
-      username
-    );
-  }
+  @ToString.Exclude
+  @NotEmpty(message = "password is required")
+  @Size(max = ValidationUtil.MAX_LEN_PASSWORD, 
+    message = "the password must be shorter than {max} characters")
+  String password;
 }

@@ -5,9 +5,12 @@
  */
 package myapp.book.dto;
 
-import java.util.Objects;
-import org.apache.commons.lang3.EnumUtils;
-import myapp.book.exceptions.ValidationException;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.Size;
+import myapp.book.utils.PaginationUtil;
 import myapp.book.utils.ValidationUtil;
 import myapp.book.utils.PaginationUtil.ORDER;
 import lombok.Getter;
@@ -20,43 +23,20 @@ import lombok.ToString;
 @ToString
 @NoArgsConstructor
 public class SearchDto {
+
+    @Size(max = ValidationUtil.MAX_LEN_SEARCH, message = "the search keyword = '${validatedValue}' must be shorter than {max} characters long")
     String search = "";
-    String page = "1";
-    String size = "10";
+
+    @Min(value = 1, message = "the page = '${validatedValue}' must be greater than or equal to {value}")
+    @Max(value = 100, message = "the page = '${validatedValue}' must be less than or equal to {value}")
+    int page = PaginationUtil.DEFAULT_PAGE_NUMBER;
+
+    @Min(value = 1, message = "the size = '${validatedValue}' must be greater than {value}")
+    @Max(value = 10, message = "the size = '${validatedValue}' must be less than or equal to {value}")
+    int size = PaginationUtil.DEFAULT_PAGE_SIZE;
+    @Size(max = ValidationUtil.MAX_LEN_SORT, message = "the sort = '${validatedValue}' must not be longer than {max} characters")
     String sort = "id";
-    String order = ORDER.DESC.getValue();
 
-    public void validate() {
-
-         // validate search keyword
-         if (this.search.length() > ValidationUtil.MAX_LEN_SEARCH) {
-             throw new ValidationException(String.format(
-                 "keyword must not be longer than %d character long",
-                     ValidationUtil.MAX_LEN_SEARCH));
-         }
-
-         // validate order
-         if ((Objects.equals(this.order, ORDER.ASC.getValue())) && 
-            (Objects.equals(this.order, ORDER.DESC.getValue()))) {
-             throw new ValidationException(String.format(
-                 "can not be ordered by %s, the correct values = %s", 
-                    order, EnumUtils.getEnumList(ORDER.class).toString().toLowerCase()));
-         }
-
-         // validate page
-         try {
-            Integer.parseInt(this.page);
-         } catch(NumberFormatException e) {
-            throw new ValidationException(String.format(
-                "page = %s is not a number", this.page));
-         }
-         
-         // validate size
-         try {
-            Integer.parseInt(this.size);
-         } catch(NumberFormatException e) {
-            throw new ValidationException(String.format(
-                "size = %s is not a number", this.size));
-         }
-    }
+    @Enumerated(EnumType.STRING)
+    ORDER order = ORDER.desc;
 }

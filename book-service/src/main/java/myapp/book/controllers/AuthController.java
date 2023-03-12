@@ -11,6 +11,7 @@ import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -44,12 +45,12 @@ public class AuthController {
    */
   @PostMapping(value = "/signup")
   public ResponseEntity<ApiResponseDto> signup(
-    final @RequestBody SignupRequestDto requestDto
+    final @Validated @RequestBody SignupRequestDto requestDto
   ) {
     logger.info("signup request dto = {}", requestDto);
 
     // validate
-    requestDto.validate();
+    //requestDto.validate();
 
     // create user
     User user = authService.signup(requestDto);
@@ -78,7 +79,7 @@ public class AuthController {
    */
   @PostMapping(value = "/login")
   public ResponseEntity<DataApiResponseDto<LoginResponseDto>> login(
-    final @RequestBody LoginRequestDto requestDto
+    final @Validated @RequestBody LoginRequestDto requestDto
   ) {
     logger.info("login request dto = {}", requestDto);
 

@@ -4,7 +4,6 @@ import myapp.book.exceptions.ValidationException;
 
 public class ValidationUtil {
 
-    public static final int MAX_LEN_SEARCH = 8;
     public static final int MIN_LEN_USERNAME = 3;
     public static final int MAX_LEN_USERNAME = 16;
 
@@ -38,6 +37,12 @@ public class ValidationUtil {
 
     public static final int MIN_LEN_BOOK_DESCRIPTION = 5;
     public static final int MAX_LEN_BOOK_DESCRIPTION = 1024;
+
+    public static final int MAX_LEN_SEARCH = 8;
+    public static final int MAX_LEN_SORT = 8;
+
+    public static final int MAX_LEN_COLUMN = 8;
+    public static final int MAX_LEN_VALUE = 8;
 
     /**
      * validate the size of string data.

@@ -7,7 +7,8 @@ public enum StatusEnum {
     ERROR_RESOURCE_NOT_FOUND(103),
     ERROR_RESOURCE_DUPLICATED(104),
     ERROR_VALIDATION(105),
-    ERROR_UNSUPPORTED(106);
+    ERROR_UNSUPPORTED(106),
+    ERROR_INVALID_JSON(107);
 
     private int status;
     private StatusEnum(int status) {

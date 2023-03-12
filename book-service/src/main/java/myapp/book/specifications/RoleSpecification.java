@@ -1,5 +1,5 @@
 /**
- * This is the specification of the book pagination object.
+ * This is the role specification.
  *
  * @author Phann Malinka
  */
@@ -10,15 +10,23 @@ import org.springframework.stereotype.Component;
 import myapp.book.dto.SearchDto;
 import myapp.book.entities.Role;
 import myapp.book.utils.PaginationUtil.ORDER;
+import java.util.Arrays;
 import java.util.Objects;
-
 import javax.persistence.criteria.Predicate;
+import javax.validation.ValidationException;
 
 @Component
 public class RoleSpecification implements CrudSpecification<Role> {
 
     public Specification<Role> search(SearchDto searchDto) {
-        Objects.requireNonNull(searchDto, "the input search dto must not be null");
+
+        // validate the column to sort
+        String[] sortables = new String[] { "name" };
+        if (!Arrays.asList(sortables).contains(searchDto.getSort())) {
+            throw new ValidationException(String.format(
+                "can not sort by column = %s, correct values = %s", 
+                searchDto.getSort(), Arrays.toString(sortables)));
+        }
 
         return (root, query, criteriaBuilder) -> {
 
@@ -30,7 +38,7 @@ public class RoleSpecification implements CrudSpecification<Role> {
                     "%" + keyword.toLowerCase() + "%");
 
             // sort
-            if (Objects.equals(searchDto.getOrder(), ORDER.DESC.getValue())) {
+            if (Objects.equals(searchDto.getOrder(), ORDER.desc)) {
                 query.orderBy(criteriaBuilder.desc(root.get(searchDto.getSort())));
             } else {
                 query.orderBy(criteriaBuilder.asc(root.get(searchDto.getSort())));
@@ -39,4 +47,5 @@ public class RoleSpecification implements CrudSpecification<Role> {
             return criteriaBuilder.or(searchByName);
         };
     }
+
 }

@@ -91,7 +91,9 @@ public class SecurityConfig {
       .authorizeHttpRequests()
       .antMatchers("/actuator/**")
       .permitAll()
-      .antMatchers("/api/v1/auth/**")
+      .antMatchers("/api/v1/auth/login")
+      .permitAll()
+      .antMatchers("/api/v1/auth/signup")
       .permitAll()
       
       // search for book and get book detail are allowed to any role

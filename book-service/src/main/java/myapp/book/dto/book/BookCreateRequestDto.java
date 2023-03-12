@@ -1,109 +1,44 @@
 /**
- * This is a request dto used to create a new myapp.book.
- * The validation is done right when this object is created.
- *
+ * This is the book create request dto.
+ * 
  * @author Phann Malinka
  */
 package myapp.book.dto.book;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import org.apache.commons.lang3.EnumUtils;
-import myapp.book.dto.Validatable;
-import myapp.book.exceptions.ValidationException;
-import myapp.book.utils.BookEnum;
+import lombok.Data;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
+import myapp.book.entities.Book.STATUS;
 import myapp.book.utils.CategoryEnum;
 import myapp.book.utils.ValidationUtil;
+import myapp.book.validators.ValueOfEnum;
 
-@Getter
-@Setter
-@ToString
-@NoArgsConstructor
-public class BookCreateRequestDto implements Validatable {
+@Data
+public class BookCreateRequestDto {
+
+  @NotEmpty(message = "code is required")
+  @Size(min = ValidationUtil.MIN_LEN_BOOK_CODE, max = ValidationUtil.MAX_LEN_BOOK_CODE, 
+    message = "the code = '${validatedValue}' must be between {min} and {max} characters")
   String code;
+
+  @NotEmpty(message = "title is required")
+  @Size(min = ValidationUtil.MIN_LEN_BOOK_TITLE, max = ValidationUtil.MAX_LEN_BOOK_TITLE, 
+    message = "the title = '${validatedValue}' must be between {min} and {max} characters")
   String title;
+
+  @NotEmpty(message = "author is required")
+  @Size(min = ValidationUtil.MIN_LEN_BOOK_AUTHOR, max = ValidationUtil.MAX_LEN_BOOK_AUTHOR, 
+    message = "the author = '${validatedValue}' must be between {min} and {max} characters")
   String author;
+
+  @ValueOfEnum(enumClass = CategoryEnum.class, message = "must be one of NOVEL, STUDY, COMICS")
   String category;
+
+  @ValueOfEnum(enumClass = STATUS.class, message = "must be one of GOOD, OLD, DELETED")
   String status;
+
+  @Size(max = ValidationUtil.MAX_LEN_BOOK_DESCRIPTION, 
+    message = "the description = '${validatedValue}' must be shorter than {max} characters")
   String description;
 
-  @Override
-  public void validate() {
-    // validate code
-    if (this.code == null) {
-      throw new ValidationException("code is required");
-    }
-
-    ValidationUtil.validateSize(
-      "code",
-      this.code,
-      ValidationUtil.MIN_LEN_BOOK_CODE,
-      ValidationUtil.MAX_LEN_BOOK_CODE
-    );
-
-    // validate title
-    if (this.title == null) {
-      throw new ValidationException("title is required");
-    }
-
-    ValidationUtil.validateSize(
-      "title",
-      this.title,
-      ValidationUtil.MIN_LEN_BOOK_TITLE,
-      ValidationUtil.MAX_LEN_BOOK_TITLE
-    );
-
-    // validate author
-    if (this.author == null) {
-      throw new ValidationException("author is required");
-    }
-
-    ValidationUtil.validateSize(
-      "author",
-      this.author,
-      ValidationUtil.MIN_LEN_BOOK_AUTHOR,
-      ValidationUtil.MAX_LEN_BOOK_AUTHOR
-    );
-
-    // validate category
-    if (this.category == null || this.category.isEmpty()) {
-      throw new ValidationException("category is required");
-    }
-
-    if (!EnumUtils.isValidEnum(CategoryEnum.class, this.category)) {
-      throw new ValidationException(
-        String.format(
-          "category = %s is invalid, the correct values = %s",
-          this.category,
-          EnumUtils.getEnumList(CategoryEnum.class).toString()
-        )
-      );
-    }
-
-    // validate status
-    // status is optional
-    if (this.status != null) {
-      if (!EnumUtils.isValidEnum(BookEnum.class, this.status)) {
-        throw new ValidationException(
-          String.format(
-            "status = %s is invalid, the correct values = %s",
-            this.status,
-            EnumUtils.getEnumList(BookEnum.class)
-          )
-        );
-      }
-    }
-
-    // validate description
-    if (this.description != null) {
-      ValidationUtil.validateSize(
-        "description",
-        this.description,
-        ValidationUtil.MIN_LEN_BOOK_DESCRIPTION,
-        ValidationUtil.MAX_LEN_BOOK_DESCRIPTION
-      );
-    }
-  }
 }

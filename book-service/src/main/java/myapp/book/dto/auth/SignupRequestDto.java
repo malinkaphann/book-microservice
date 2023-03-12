@@ -5,94 +5,43 @@
  */
 package myapp.book.dto.auth;
 
-import org.apache.commons.validator.routines.EmailValidator;
-import myapp.book.exceptions.ValidationException;
+import java.util.ArrayList;
+import java.util.List;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
+
+import myapp.book.entities.Role;
 import myapp.book.utils.ValidationUtil;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Data;
 import lombok.ToString;
 
-@Getter
-@Setter
-@ToString
-@NoArgsConstructor
-@AllArgsConstructor
+@Data
 public class SignupRequestDto {
+
+  @NotEmpty(message = "username is required")
+  @Size(min = ValidationUtil.MIN_LEN_USERNAME, max = ValidationUtil.MAX_LEN_USERNAME, message = "username must be between {min} and {max} characters")
   private String username;
-  
+
+  @Size(min = ValidationUtil.MIN_LEN_PASSWORD, max = ValidationUtil.MAX_LEN_PASSWORD, message = "password must be between {min} and {max} characters")
   @ToString.Exclude
   private String password;
+
+  @Size(max = ValidationUtil.MAX_LEN_STUDENT_ID, message = "studentId must not be longer than {max} characters")
   private String studentId;
+
+  @NotEmpty(message = "name is required")
+  @Size(min = ValidationUtil.MIN_LEN_NAME, max = ValidationUtil.MAX_LEN_NAME, message = "name must be between {min} and {max} characters")
   private String name;
+
+  @NotEmpty(message = "phone is required")
+  @Size(min = ValidationUtil.MIN_LEN_PHONE, max = ValidationUtil.MAX_LEN_PHONE, message = "phone must be between {min} and {max} characters")
   private String phone;
+
+  @NotEmpty(message = "email is required")
+  @Email(message = "email = ${validatedValue} is not a valid email")
   private String email;
 
-  // csv
-  private String roles;
-
-  public void validate() {
-
-    // validate username
-    if (this.username == null) {
-      throw new ValidationException("username is required");
-    }
-
-    ValidationUtil.validateSize(
-      "username",
-      this.username,
-      ValidationUtil.MIN_LEN_USERNAME,
-      ValidationUtil.MAX_LEN_USERNAME
-    );
-
-    // validate password
-    if (this.password == null) {
-      throw new ValidationException("password is required");
-    }
-
-    ValidationUtil.validateSize(
-      "password",
-      this.password,
-      ValidationUtil.MIN_LEN_PASSWORD,
-      ValidationUtil.MAX_LEN_PASSWORD
-    );
-
-    // validate student id
-    if (this.studentId != null) {
-    ValidationUtil.validateSize("studentId", this.studentId, 
-        ValidationUtil.MIN_LEN_STUDENT_ID, ValidationUtil.MAX_LEN_STUDENT_ID);
-    }
-    
-    // validate name
-    if (this.name == null || this.name.isEmpty()) {
-        throw new ValidationException("name is required");
-    }
-    
-    ValidationUtil.validateSize("name", this.name, 
-        ValidationUtil.MIN_LEN_NAME, ValidationUtil.MAX_LEN_NAME);
-
-    // validate phone
-    if (this.phone == null || this.phone.isEmpty()) {
-        throw new ValidationException("phone is required");
-    }
-
-    ValidationUtil.validateSize("phone", this.phone, 
-        ValidationUtil.MIN_LEN_PHONE, ValidationUtil.MAX_LEN_PHONE);
-    
-    // validate email
-    if (this.email == null || this.email.isEmpty()) {
-        throw new ValidationException("email is required");
-    }
-
-    if (!EmailValidator.getInstance().isValid(this.email)) {
-        throw new ValidationException(String.format(
-            "email = %s is not valid", this.email));
-    }
-
-    // validate roles
-    if (this.roles == null || this.roles.isEmpty()) {
-        throw new ValidationException("roles is required");
-    }
-  }
+  @NotEmpty(message = "roles is required")
+  private List<Role> roles = new ArrayList<>();
 }
